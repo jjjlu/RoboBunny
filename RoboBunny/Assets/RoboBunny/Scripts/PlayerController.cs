@@ -1,78 +1,193 @@
 using System.Collections;
 using System.Collections.Generic;
+using Unity.VisualScripting;
 using UnityEngine;
+
+// https://www.youtube.com/watch?v=FXpUb-H54Oc
+// https://www.youtube.com/watch?v=O6VX6Ro7EtA
 
 public class PlayerController : MonoBehaviour
 {
+    [Header("For Movement")]
+    [SerializeField] float moveSpeed = 10f;
+    private float XDirectionalInput;
+    private bool facingRight = true;
+    private bool isMoving;
 
+    [Header("For Jumping")]
+    [SerializeField] float jumpForce = 16f;
+    [SerializeField] int extraJumpsValue = 1;
+    [SerializeField] LayerMask groundLayer;
+    [SerializeField] Transform groundCheckPoint;
+    [SerializeField] Vector2 groundCheckSize;
+    private bool grounded;
+    private bool jumpInput;
+    private int extraJumps;
+
+    [Header("For WallSliding")]
+    [SerializeField] float wallSlideSpeed;
+    [SerializeField] LayerMask wallLayer;
+    [SerializeField] Transform wallCheckPoint;
+    [SerializeField] Vector2 wallCheckSize;
+    private bool isTouchingWall;
+    private bool isWallSliding;
+
+    [Header("For WallJumping")]
+    [SerializeField] Vector2 wallJumpingPower = new Vector2(8f, 16f);
+    [SerializeField] float wallJumpingDirection = -1;
+    private bool isWallJumping;
+    private float wallJumpingDuration = 0.4f;
+
+    [Header("Other")]
+    [SerializeField] Animator anim;
     private Rigidbody2D rb;
-    private BoxCollider2D coll;
-    private Animator anim;
-    private SpriteRenderer sprite;
 
-    [SerializeField] private LayerMask jumpableGround;
 
-    private enum MovementState
-    {
-        idle=0,
-        running,
-        jumping,
-        falling
-    }
 
-    private MovementState state = MovementState.idle;
-
-    // Start is called before the first frame update
-    void Start()
+    private void Start()
     {
         rb = GetComponent<Rigidbody2D>();
-        coll = GetComponent<BoxCollider2D>();
-        anim = GetComponent<Animator>();
-        sprite = GetComponent<SpriteRenderer>(); 
     }
 
-    // Update is called once per frame
-    void Update()
+    private void Update()
     {
+        Inputs();
+        CheckWorld();
 
+        Debug.Log(extraJumps);
+        
+        Movement();
+        Jump();
+        WallSlide();
+        WallJump();
 
-        MovementState state;
-        float inputX = Input.GetAxisRaw("Horizontal");
-        rb.velocity = new Vector2(inputX * 7.0f, rb.velocity.y);
+        // AnimationControl();
+    }
 
-        if (Input.GetButtonDown("Jump") && Physics2D.BoxCast(coll.bounds.center, coll.bounds.size, 0.0f, Vector2.down, 0.1f, jumpableGround))
+    void Inputs()
+    {
+        XDirectionalInput = Input.GetAxis("Horizontal");
+        jumpInput = Input.GetButtonDown("Jump");
+    }
+    void CheckWorld()
+    {
+        grounded = Physics2D.OverlapBox(groundCheckPoint.position, groundCheckSize, 0, groundLayer);
+        isTouchingWall = Physics2D.OverlapBox(wallCheckPoint.position, wallCheckSize, 0, wallLayer);
+
+        if (grounded || isTouchingWall)
         {
-            rb.velocity = new Vector2(rb.velocity.x, 14.0f);
+            extraJumps = extraJumpsValue;
         }
+    }
 
-        if (inputX > 0.0f)
+    void Movement()
+    {
+        //for Animation
+        if (XDirectionalInput != 0)
         {
-            sprite.flipX = false;
-            state = MovementState.running;
-        }
-        else if (inputX < 0.0f)
-        {
-            sprite.flipX = true;
-            state = MovementState.running;
+            isMoving = true;
         }
         else
         {
-            state = MovementState.idle;
+            isMoving = false;
         }
 
-        if (rb.velocity.y > 0.1f)
+        //for movement
+        if (!isWallJumping)
         {
-            state = MovementState.jumping;
+            rb.velocity = new Vector2(XDirectionalInput * moveSpeed, rb.velocity.y);
         }
-        else if (rb.velocity.y < -0.1f)
+
+        //for fliping
+        if (XDirectionalInput < 0 && facingRight && !isWallJumping)
         {
-            state = MovementState.falling;
+            Flip();
         }
+        else if (XDirectionalInput > 0 && !facingRight && !isWallJumping)
+        {
+            Flip();
+        }
+    }
 
-        anim.SetInteger("state", (int)state);
-
-
-        
+    void Flip()
+    {
+        if (!isWallSliding)
+        {
+            wallJumpingDirection *= -1;
+            facingRight = !facingRight;
+            transform.Rotate(0, 180, 0);
+        }
 
     }
+
+    void Jump()
+    {
+        if (jumpInput && !isWallSliding && (extraJumps > 0 || grounded))
+        {
+            rb.velocity = new Vector2(rb.velocity.x, jumpForce);
+            extraJumps = Mathf.Max(extraJumps-1, 0);
+        }
+
+        if (jumpInput && rb.velocity.y > 0f)
+        {
+            rb.velocity = new Vector2(rb.velocity.x, rb.velocity.y * 0.5f);
+        }
+    }
+
+    void WallSlide()
+    {
+        if (isTouchingWall && !grounded)
+        {
+            isWallSliding = true;
+        }
+        else
+        {
+            isWallSliding = false;
+        }
+
+        if (isWallSliding)
+        {
+            rb.velocity = new Vector2(rb.velocity.x, Mathf.Clamp(rb.velocity.y, -wallSlideSpeed, float.MaxValue));
+        }
+    }
+    void WallJump()
+    {
+        if (isWallSliding)
+        {
+            isWallJumping = false;
+            CancelInvoke(nameof(StopWallJumping));
+        }
+
+        if (jumpInput && isWallSliding)
+        {
+            isWallJumping = true;
+            isWallSliding = false;
+            rb.velocity = new Vector2(wallJumpingDirection * wallJumpingPower.x, wallJumpingPower.y);
+
+            Flip();
+
+            Invoke(nameof(StopWallJumping), wallJumpingDuration);
+        }
+    }
+
+    private void StopWallJumping()
+    {
+        isWallJumping = false;
+    }
+
+    void AnimationControl()
+    {
+        anim.SetBool("isMoving", isMoving);
+        anim.SetBool("isGrounded", grounded);
+        anim.SetBool("isSliding", isTouchingWall);
+    }
+    private void OnDrawGizmosSelected()
+    {
+        Gizmos.color = Color.blue;
+        Gizmos.DrawCube(groundCheckPoint.position, groundCheckSize);
+        Gizmos.color = Color.green;
+        Gizmos.DrawCube(wallCheckPoint.position, wallCheckSize);
+
+    }
+
 }
