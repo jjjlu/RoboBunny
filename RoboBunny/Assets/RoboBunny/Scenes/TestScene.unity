@@ -267,7 +267,7 @@ Rigidbody2D:
   m_Mass: 1
   m_LinearDrag: 0
   m_AngularDrag: 0.05
-  m_GravityScale: 1
+  m_GravityScale: 1.5
   m_Material: {fileID: 0}
   m_IncludeLayers:
     serializedVersion: 2
@@ -360,8 +360,8 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 4305f765fe9e7e94b8b22af01b33e21e, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  moveSpeed: 10
-  jumpForce: 16
+  moveSpeed: 7
+  jumpForce: 20
   extraJumpsValue: 1
   groundLayer:
     serializedVersion: 2
@@ -374,7 +374,7 @@ MonoBehaviour:
     m_Bits: 64
   wallCheckPoint: {fileID: 150926002}
   wallCheckSize: {x: 0.05, y: 1}
-  wallJumpingPower: {x: 4, y: 8}
+  wallJumpingPower: {x: 4, y: 10}
   wallJumpingDirection: -1
   tr: {fileID: 549820572}
   dashingPower: 24
@@ -445,7 +445,7 @@ TrailRenderer:
   m_SortingLayerID: 2136470109
   m_SortingLayer: -2
   m_SortingOrder: -1
-  m_Time: 1
+  m_Time: 0.15
   m_PreviewTimeScale: 1
   m_Parameters:
     serializedVersion: 3
@@ -455,7 +455,7 @@ TrailRenderer:
       m_Curve:
       - serializedVersion: 3
         time: 0
-        value: 0.48951167
+        value: 0.82284755
         inSlope: 0
         outSlope: 0
         tangentMode: 0

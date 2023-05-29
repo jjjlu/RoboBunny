@@ -66,8 +66,6 @@ public class PlayerController : MonoBehaviour
     {
         Inputs();
         CheckWorld();
-
-        Debug.Log(extraJumps);
         
         Movement();
         Jump();
@@ -75,7 +73,7 @@ public class PlayerController : MonoBehaviour
         WallJump();
         Dash();
 
-        // AnimationControl();
+        AnimationControl();
     }
 
     void Inputs()
@@ -150,11 +148,15 @@ public class PlayerController : MonoBehaviour
         if (jumpInput && grounded)
         {
             rb.velocity = new Vector2(rb.velocity.x, jumpForce);
+
+            anim.SetTrigger("Jump");
         }
         else if (jumpInput && extraJumps > 0)
         {
             rb.velocity = new Vector2(rb.velocity.x, jumpForce);
             extraJumps--;
+
+            anim.SetTrigger("DoubleJump");
         }
 
         if (jumpInput && rb.velocity.y > 0f)
@@ -203,6 +205,8 @@ public class PlayerController : MonoBehaviour
             isWallSliding = false;
             rb.velocity = new Vector2(wallJumpingDirection * wallJumpingPower.x, wallJumpingPower.y);
 
+            anim.SetTrigger("Jump");
+
             Flip();
 
             Invoke(nameof(StopWallJumping), wallJumpingDuration);
@@ -240,9 +244,11 @@ public class PlayerController : MonoBehaviour
 
     void AnimationControl()
     {
-        anim.SetBool("isMoving", isMoving);
-        anim.SetBool("isGrounded", grounded);
-        anim.SetBool("isSliding", isTouchingWall);
+        anim.SetBool("Moving", isMoving);
+        anim.SetBool("WallSlide", isWallSliding);
+        anim.SetFloat("AirSpeedY", rb.velocity.y);
+        anim.SetBool("Grounded", grounded);
+        anim.SetBool("Dashing", isDashing);
     }
     private void OnDrawGizmosSelected()
     {
