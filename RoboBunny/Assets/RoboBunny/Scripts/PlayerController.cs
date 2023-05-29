@@ -20,9 +20,18 @@ public class PlayerController : MonoBehaviour
     [SerializeField] LayerMask groundLayer;
     [SerializeField] Transform groundCheckPoint;
     [SerializeField] Vector2 groundCheckSize;
+    [SerializeField] float jumpCoyoteTime = 0.15f;
+    [SerializeField] float jumpBufferTime = 0.10f;
+    [SerializeField] float jumpCutMultiplier = 0.5f;
+    [SerializeField] float fallGravityMultiplier = 1.2f;
+    [SerializeField] float gravityScale = 1.0f;
+    [SerializeField] float maxFallVelocity = -40.0f;
     private bool grounded;
     private bool jumpInput;
+    private bool jumpInputUp;
     private int extraJumps;
+    private float lastGroundedTime;
+    private float lastJumpTime;
 
     [Header("For WallSliding")]
     [SerializeField] float wallSlideSpeed;
@@ -81,6 +90,7 @@ public class PlayerController : MonoBehaviour
     {
         XDirectionalInput = Input.GetAxis("Horizontal");
         jumpInput = Input.GetButtonDown("Jump");
+        jumpInputUp = Input.GetButtonUp("Jump");
         dashInput = Input.GetButtonDown("Fire3");
     }
     void CheckWorld()
@@ -145,13 +155,33 @@ public class PlayerController : MonoBehaviour
             return;
         }
 
-        if (jumpInput && grounded)
+        if (grounded)
+        {
+            lastGroundedTime = jumpCoyoteTime;
+        }
+        else
+        {
+            lastGroundedTime -= Time.deltaTime;
+        }
+
+        if (jumpInput)
+        {
+            lastJumpTime = jumpBufferTime;
+        }
+        else
+        {
+            lastJumpTime -= Time.deltaTime;
+        }
+
+        if (lastJumpTime > 0 && lastGroundedTime > 0)
         {
             rb.velocity = new Vector2(rb.velocity.x, jumpForce);
 
+            lastJumpTime = 0;
+
             anim.SetTrigger("Jump");
         }
-        else if (jumpInput && extraJumps > 0)
+        else if (jumpInput && extraJumps > 0 && !grounded)
         {
             rb.velocity = new Vector2(rb.velocity.x, jumpForce);
             extraJumps--;
@@ -159,10 +189,23 @@ public class PlayerController : MonoBehaviour
             anim.SetTrigger("DoubleJump");
         }
 
-        if (jumpInput && rb.velocity.y > 0f)
+        if (jumpInputUp && rb.velocity.y > 0f)
         {
-            rb.velocity = new Vector2(rb.velocity.x, rb.velocity.y * 0.5f);
+            rb.velocity = new Vector2(rb.velocity.x, rb.velocity.y * jumpCutMultiplier);
+
+            lastGroundedTime = 0f;
         }
+
+        if (rb.velocity.y < 0f)
+        {
+            rb.gravityScale = gravityScale * fallGravityMultiplier;
+        }
+        else
+        {
+            rb.gravityScale = gravityScale;
+        }
+
+        rb.velocity = new Vector2(rb.velocity.x, Mathf.Max(rb.velocity.y, maxFallVelocity)); 
     }
 
     void WallSlide()
