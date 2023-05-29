@@ -38,6 +38,16 @@ public class PlayerController : MonoBehaviour
     private bool isWallJumping;
     private float wallJumpingDuration = 0.4f;
 
+    [Header("For Dashing")]
+    [SerializeField] TrailRenderer tr;
+    [SerializeField] float dashingPower = 24f;
+    [SerializeField] float dashingTime = 0.2f;
+    [SerializeField] float dashingCooldown = 1f;
+    [SerializeField] float dashDirection = 1;
+    private bool canDash = true;
+    private bool isDashing = false;
+    private bool dashInput;
+
     [Header("Other")]
     [SerializeField] Animator anim;
     private Rigidbody2D rb;
@@ -47,6 +57,9 @@ public class PlayerController : MonoBehaviour
     private void Start()
     {
         rb = GetComponent<Rigidbody2D>();
+        tr.emitting = false;
+        tr.sortingOrder = 99;
+        tr.sortingLayerName = "Background";
     }
 
     private void Update()
@@ -60,6 +73,7 @@ public class PlayerController : MonoBehaviour
         Jump();
         WallSlide();
         WallJump();
+        Dash();
 
         // AnimationControl();
     }
@@ -68,6 +82,7 @@ public class PlayerController : MonoBehaviour
     {
         XDirectionalInput = Input.GetAxis("Horizontal");
         jumpInput = Input.GetButtonDown("Jump");
+        dashInput = Input.GetButtonDown("Fire3");
     }
     void CheckWorld()
     {
@@ -82,6 +97,11 @@ public class PlayerController : MonoBehaviour
 
     void Movement()
     {
+        if (isWallJumping || isDashing)
+        {
+            return;
+        }
+
         //for Animation
         if (XDirectionalInput != 0)
         {
@@ -93,17 +113,14 @@ public class PlayerController : MonoBehaviour
         }
 
         //for movement
-        if (!isWallJumping)
-        {
-            rb.velocity = new Vector2(XDirectionalInput * moveSpeed, rb.velocity.y);
-        }
+        rb.velocity = new Vector2(XDirectionalInput * moveSpeed, rb.velocity.y);
 
         //for fliping
-        if (XDirectionalInput < 0 && facingRight && !isWallJumping)
+        if (XDirectionalInput < 0 && facingRight)
         {
             Flip();
         }
-        else if (XDirectionalInput > 0 && !facingRight && !isWallJumping)
+        else if (XDirectionalInput > 0 && !facingRight)
         {
             Flip();
         }
@@ -111,21 +128,33 @@ public class PlayerController : MonoBehaviour
 
     void Flip()
     {
-        if (!isWallSliding)
+        if (isWallSliding)
         {
-            wallJumpingDirection *= -1;
-            facingRight = !facingRight;
-            transform.Rotate(0, 180, 0);
+            return;
         }
+
+        wallJumpingDirection *= -1;
+        dashDirection *= -1;
+        facingRight = !facingRight;
+        transform.Rotate(0, 180, 0);
 
     }
 
     void Jump()
     {
-        if (jumpInput && !isWallSliding && (extraJumps > 0 || grounded))
+        if (isDashing || isWallSliding)
+        {
+            return;
+        }
+
+        if (jumpInput && grounded)
         {
             rb.velocity = new Vector2(rb.velocity.x, jumpForce);
-            extraJumps = Mathf.Max(extraJumps-1, 0);
+        }
+        else if (jumpInput && extraJumps > 0)
+        {
+            rb.velocity = new Vector2(rb.velocity.x, jumpForce);
+            extraJumps--;
         }
 
         if (jumpInput && rb.velocity.y > 0f)
@@ -136,6 +165,11 @@ public class PlayerController : MonoBehaviour
 
     void WallSlide()
     {
+        if (isDashing)
+        {
+            return;
+        }
+
         if (isTouchingWall && !grounded)
         {
             isWallSliding = true;
@@ -152,6 +186,11 @@ public class PlayerController : MonoBehaviour
     }
     void WallJump()
     {
+        if (isDashing)
+        {
+            return;
+        }
+
         if (isWallSliding)
         {
             isWallJumping = false;
@@ -173,6 +212,30 @@ public class PlayerController : MonoBehaviour
     private void StopWallJumping()
     {
         isWallJumping = false;
+    }
+
+    void Dash()
+    {
+        if (dashInput && canDash)
+        {
+            StartCoroutine(DashRoutine());
+        }
+    }
+
+    private IEnumerator DashRoutine()
+    {
+        canDash = false;
+        isDashing = true;
+        float originalGravity = rb.gravityScale;
+        rb.gravityScale = 0f;
+        rb.velocity = new Vector2(dashDirection * dashingPower, 0f);
+        tr.emitting = true;
+        yield return new WaitForSeconds(dashingTime);
+        tr.emitting = false;
+        rb.gravityScale = originalGravity;
+        isDashing = false;
+        yield return new WaitForSeconds(dashingCooldown);
+        canDash = true;
     }
 
     void AnimationControl()
