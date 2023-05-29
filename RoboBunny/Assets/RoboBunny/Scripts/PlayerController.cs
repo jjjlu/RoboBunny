@@ -45,6 +45,7 @@ public class PlayerController : MonoBehaviour
     [SerializeField] float dashingCooldown = 1f;
     [SerializeField] float dashDirection = 1;
     private bool canDash = true;
+    private bool finishDashCooldown = true;
     private bool isDashing = false;
     private bool dashInput;
 
@@ -90,6 +91,11 @@ public class PlayerController : MonoBehaviour
         if (grounded || isTouchingWall)
         {
             extraJumps = extraJumpsValue;
+
+            if (finishDashCooldown)
+            {
+                canDash = true;
+            }
         }
     }
 
@@ -114,11 +120,11 @@ public class PlayerController : MonoBehaviour
         rb.velocity = new Vector2(XDirectionalInput * moveSpeed, rb.velocity.y);
 
         //for fliping
-        if (XDirectionalInput < 0 && facingRight)
+        if (XDirectionalInput < 0 && facingRight && !isWallSliding)
         {
             Flip();
         }
-        else if (XDirectionalInput > 0 && !facingRight)
+        else if (XDirectionalInput > 0 && !facingRight && !isWallSliding)
         {
             Flip();
         }
@@ -126,16 +132,10 @@ public class PlayerController : MonoBehaviour
 
     void Flip()
     {
-        if (isWallSliding)
-        {
-            return;
-        }
-
         wallJumpingDirection *= -1;
         dashDirection *= -1;
         facingRight = !facingRight;
         transform.Rotate(0, 180, 0);
-
     }
 
     void Jump()
@@ -222,6 +222,13 @@ public class PlayerController : MonoBehaviour
     {
         if (dashInput && canDash)
         {
+            if (isWallSliding ||
+                (XDirectionalInput < 0 && facingRight) || 
+                (XDirectionalInput > 0 && !facingRight))
+            {
+                Flip();
+            }
+
             StartCoroutine(DashRoutine());
         }
     }
@@ -229,6 +236,7 @@ public class PlayerController : MonoBehaviour
     private IEnumerator DashRoutine()
     {
         canDash = false;
+        finishDashCooldown = false;
         isDashing = true;
         float originalGravity = rb.gravityScale;
         rb.gravityScale = 0f;
@@ -239,7 +247,7 @@ public class PlayerController : MonoBehaviour
         rb.gravityScale = originalGravity;
         isDashing = false;
         yield return new WaitForSeconds(dashingCooldown);
-        canDash = true;
+        finishDashCooldown = true;
     }
 
     void AnimationControl()

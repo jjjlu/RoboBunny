@@ -277,7 +277,7 @@ Rigidbody2D:
     m_Bits: 0
   m_Interpolate: 0
   m_SleepingMode: 1
-  m_CollisionDetection: 0
+  m_CollisionDetection: 1
   m_Constraints: 4
 --- !u!212 &549820568
 SpriteRenderer:
@@ -377,9 +377,9 @@ MonoBehaviour:
   wallJumpingPower: {x: 4, y: 10}
   wallJumpingDirection: -1
   tr: {fileID: 549820572}
-  dashingPower: 24
+  dashingPower: 30
   dashingTime: 0.2
-  dashingCooldown: 1
+  dashingCooldown: 0.3
   dashDirection: 1
   anim: {fileID: 549820571}
 --- !u!95 &549820571
