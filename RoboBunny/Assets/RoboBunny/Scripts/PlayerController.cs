@@ -76,6 +76,8 @@ public class PlayerController : MonoBehaviour
     {
         Inputs();
         CheckWorld();
+
+        Debug.Log(canDash);
         
         Movement();
         Jump();
@@ -101,11 +103,7 @@ public class PlayerController : MonoBehaviour
         if (grounded || isTouchingWall)
         {
             extraJumps = extraJumpsValue;
-
-            if (finishDashCooldown)
-            {
-                canDash = true;
-            }
+            canDash = true;
         }
     }
 
@@ -263,7 +261,7 @@ public class PlayerController : MonoBehaviour
 
     void Dash()
     {
-        if (dashInput && canDash)
+        if (dashInput && canDash && finishDashCooldown)
         {
             if (isWallSliding ||
                 (XDirectionalInput < 0 && facingRight) || 
