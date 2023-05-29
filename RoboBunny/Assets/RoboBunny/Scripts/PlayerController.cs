@@ -76,8 +76,6 @@ public class PlayerController : MonoBehaviour
     {
         Inputs();
         CheckWorld();
-
-        Debug.Log(canDash);
         
         Movement();
         Jump();
