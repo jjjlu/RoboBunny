@@ -58,6 +58,16 @@ public class PlayerController : MonoBehaviour
     private bool isDashing = false;
     private bool dashInput;
 
+    [Header("For Hit")]
+    [SerializeField] Vector2 hitKnockbackPower = new Vector2(3f, 3f);
+    [SerializeField] float hitDuration = 0.15f;
+    [SerializeField] float hitCooldown = 0.5f;
+    [SerializeField] float frictionAmount = 0.5f;
+    private bool finishHitCooldown = true;
+    private bool isHit = false;
+    private bool isColliding = false;
+    private float hitDirection;
+
     [Header("Other")]
     [SerializeField] Animator anim;
     private Rigidbody2D rb;
@@ -82,6 +92,7 @@ public class PlayerController : MonoBehaviour
         WallSlide();
         WallJump();
         Dash();
+        Hit();
 
         AnimationControl();
     }
@@ -107,7 +118,7 @@ public class PlayerController : MonoBehaviour
 
     void Movement()
     {
-        if (isWallJumping || isDashing)
+        if (isWallJumping || isDashing || isHit)
         {
             return;
         }
@@ -146,7 +157,7 @@ public class PlayerController : MonoBehaviour
 
     void Jump()
     {
-        if (isDashing || isWallSliding)
+        if (isDashing || isWallSliding || isHit)
         {
             return;
         }
@@ -206,7 +217,7 @@ public class PlayerController : MonoBehaviour
 
     void WallSlide()
     {
-        if (isDashing)
+        if (isDashing || isHit)
         {
             return;
         }
@@ -227,7 +238,7 @@ public class PlayerController : MonoBehaviour
     }
     void WallJump()
     {
-        if (isDashing)
+        if (isDashing || isHit)
         {
             return;
         }
@@ -259,6 +270,11 @@ public class PlayerController : MonoBehaviour
 
     void Dash()
     {
+        if (isHit)
+        {
+            return;
+        }
+
         if (dashInput && canDash && finishDashCooldown)
         {
             if (isWallSliding ||
@@ -267,6 +283,10 @@ public class PlayerController : MonoBehaviour
             {
                 Flip();
             }
+
+            isWallSliding = false;
+            isWallJumping = false;
+            CancelInvoke(nameof(StopWallJumping));
 
             StartCoroutine(DashRoutine());
         }
@@ -289,6 +309,64 @@ public class PlayerController : MonoBehaviour
         finishDashCooldown = true;
     }
 
+    void Hit()
+    {
+        if (isColliding && finishHitCooldown && !isHit)
+        {
+            isWallSliding = false;
+            isWallJumping = false;
+            CancelInvoke(nameof(StopWallJumping));
+
+            StartCoroutine(HitRoutine());
+        }
+
+        if (isHit && grounded)
+        {
+            float amount = Mathf.Min(Mathf.Abs(rb.velocity.x), Mathf.Abs(frictionAmount));
+
+            amount *= Mathf.Sign(rb.velocity.x);
+
+            rb.AddForce(Vector2.right * -amount, ForceMode2D.Impulse);
+        }
+    }
+
+    private IEnumerator HitRoutine()
+    {
+        isHit = true;
+        finishHitCooldown = false;
+        rb.velocity = new Vector2(hitDirection * hitKnockbackPower.x, hitKnockbackPower.y);
+        Debug.Log(rb.velocity);
+        yield return new WaitForSeconds(hitDuration);
+        isHit = false;
+        yield return new WaitForSeconds(hitCooldown);
+        finishHitCooldown = true;
+    }
+
+    void OnTriggerEnter2D(UnityEngine.Collider2D collision)
+    {
+        if (collision.gameObject.CompareTag("Trap"))
+        {
+            if (transform.position.x < collision.gameObject.transform.position.x)
+            {
+                hitDirection = -1;
+            }
+            else
+            {
+                hitDirection = 1;
+            }
+            
+            isColliding = true;
+        }
+    }
+
+    void OnTriggerExit2D(UnityEngine.Collider2D collision)
+    {
+        if (collision.gameObject.CompareTag("Trap"))
+        {
+            isColliding = false;
+        }
+    }
+
     void AnimationControl()
     {
         anim.SetBool("Moving", isMoving);
@@ -296,6 +374,7 @@ public class PlayerController : MonoBehaviour
         anim.SetFloat("AirSpeedY", rb.velocity.y);
         anim.SetBool("Grounded", grounded);
         anim.SetBool("Dashing", isDashing);
+        anim.SetBool("Hit", isHit);
     }
     private void OnDrawGizmosSelected()
     {
