@@ -2,6 +2,7 @@ using System.Collections;
 using System.Collections.Generic;
 using Unity.VisualScripting;
 using UnityEngine;
+using UnityEngine.SceneManagement;
 
 // https://www.youtube.com/watch?v=FXpUb-H54Oc
 // https://www.youtube.com/watch?v=O6VX6Ro7EtA
@@ -62,11 +63,17 @@ public class PlayerController : MonoBehaviour
     [SerializeField] Vector2 hitKnockbackPower = new Vector2(3f, 3f);
     [SerializeField] float hitDuration = 0.15f;
     [SerializeField] float hitCooldown = 0.5f;
-    [SerializeField] float frictionAmount = 0.5f;
     private bool finishHitCooldown = true;
     private bool isHit = false;
     private bool isColliding = false;
     private float hitDirection;
+
+    [Header("For Death")]
+    [SerializeField] float deathDuration = 5f;
+
+    [Header("For Health")]
+    [SerializeField] int maxHealth = 3;
+    private int currentHealth;
 
     [Header("Other")]
     [SerializeField] Animator anim;
@@ -77,9 +84,7 @@ public class PlayerController : MonoBehaviour
     private void Start()
     {
         rb = GetComponent<Rigidbody2D>();
-        tr.emitting = false;
-        tr.sortingOrder = 99;
-        tr.sortingLayerName = "Background";
+        currentHealth = maxHealth;
     }
 
     private void Update()
@@ -317,17 +322,17 @@ public class PlayerController : MonoBehaviour
             isWallJumping = false;
             CancelInvoke(nameof(StopWallJumping));
 
-            StartCoroutine(HitRoutine());
-        }
+            currentHealth--;
 
-        if (isHit && grounded)
-        {
-            float amount = Mathf.Min(Mathf.Abs(rb.velocity.x), Mathf.Abs(frictionAmount));
-
-            amount *= Mathf.Sign(rb.velocity.x);
-
-            rb.AddForce(Vector2.right * -amount, ForceMode2D.Impulse);
-        }
+            if (currentHealth <= 0)
+            {
+                StartCoroutine(DeathRoutine());
+            }
+            else
+            {
+                StartCoroutine(HitRoutine());
+            }
+        }       
     }
 
     private IEnumerator HitRoutine()
@@ -340,6 +345,15 @@ public class PlayerController : MonoBehaviour
         isHit = false;
         yield return new WaitForSeconds(hitCooldown);
         finishHitCooldown = true;
+    }
+
+    private IEnumerator DeathRoutine()
+    {
+        enabled = false;
+        rb.bodyType = RigidbodyType2D.Static;
+        anim.SetTrigger("Death");
+        yield return new WaitForSeconds(deathDuration);
+        SceneManager.LoadScene(SceneManager.GetActiveScene().name);
     }
 
     void OnTriggerEnter2D(UnityEngine.Collider2D collision)
