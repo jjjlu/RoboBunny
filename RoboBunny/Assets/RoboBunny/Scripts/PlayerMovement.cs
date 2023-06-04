@@ -63,6 +63,7 @@ public class PlayerController : MonoBehaviour
     [SerializeField] Vector2 hitKnockbackPower = new Vector2(3f, 3f);
     [SerializeField] float hitDuration = 0.15f;
     [SerializeField] float hitCooldown = 0.5f;
+    [SerializeField] float frictionAmount = 0.35f;
     private bool finishHitCooldown = true;
     private bool isHit = false;
     private bool isColliding = false;
@@ -332,7 +333,16 @@ public class PlayerController : MonoBehaviour
             {
                 StartCoroutine(HitRoutine());
             }
-        }       
+        }
+
+        if (isHit && grounded)
+        {
+            float amount = Mathf.Min(Mathf.Abs(rb.velocity.x), Mathf.Abs(frictionAmount));
+
+            amount *= Mathf.Sign(rb.velocity.x);
+
+            rb.AddForce(Vector2.right * -amount, ForceMode2D.Impulse);
+        }
     }
 
     private IEnumerator HitRoutine()
