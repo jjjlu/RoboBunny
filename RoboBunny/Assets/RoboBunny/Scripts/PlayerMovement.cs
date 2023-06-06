@@ -389,6 +389,13 @@ public class PlayerController : MonoBehaviour
             
             isColliding = true;
         }
+        else if (collision.gameObject.CompareTag("Death"))
+        {
+            
+            enabled = false;
+            isDead = true;
+            StartCoroutine(DeathRoutine());
+        }
     }
 
     void OnTriggerExit2D(UnityEngine.Collider2D collision)
