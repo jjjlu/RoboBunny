@@ -63,6 +63,7 @@ public class PlayerController : MonoBehaviour
     [SerializeField] Vector2 hitKnockbackPower = new Vector2(3f, 3f);
     [SerializeField] float hitDuration = 0.15f;
     [SerializeField] float hitCooldown = 0.5f;
+    [SerializeField] float frictionAmount = 0.35f;
     private bool finishHitCooldown = true;
     private bool isHit = false;
     private bool isColliding = false;
@@ -70,6 +71,7 @@ public class PlayerController : MonoBehaviour
 
     [Header("For Death")]
     [SerializeField] float deathDuration = 5f;
+    private bool isDead = false;
 
     [Header("For Health")]
     [SerializeField] int maxHealth = 3;
@@ -326,13 +328,24 @@ public class PlayerController : MonoBehaviour
 
             if (currentHealth <= 0)
             {
+                enabled = false;
+                isDead = true;
                 StartCoroutine(DeathRoutine());
             }
             else
             {
                 StartCoroutine(HitRoutine());
             }
-        }       
+        }
+
+        if (isHit && grounded)
+        {
+            float amount = Mathf.Min(Mathf.Abs(rb.velocity.x), Mathf.Abs(frictionAmount));
+
+            amount *= Mathf.Sign(rb.velocity.x);
+
+            rb.AddForce(Vector2.right * -amount, ForceMode2D.Impulse);
+        }
     }
 
     private IEnumerator HitRoutine()
@@ -349,8 +362,13 @@ public class PlayerController : MonoBehaviour
 
     private IEnumerator DeathRoutine()
     {
-        enabled = false;
         rb.bodyType = RigidbodyType2D.Static;
+        anim.SetBool("Moving", false);
+        anim.SetBool("WallSlide", false);
+        anim.SetFloat("AirSpeedY", 0);
+        anim.SetBool("Grounded", true);
+        anim.SetBool("Dashing", false);
+        anim.SetBool("Hit", false);
         anim.SetTrigger("Death");
         yield return new WaitForSeconds(deathDuration);
         SceneManager.LoadScene(SceneManager.GetActiveScene().name);
@@ -383,6 +401,8 @@ public class PlayerController : MonoBehaviour
 
     void AnimationControl()
     {
+        if (isDead) return;
+
         anim.SetBool("Moving", isMoving);
         anim.SetBool("WallSlide", isWallSliding);
         anim.SetFloat("AirSpeedY", rb.velocity.y);
