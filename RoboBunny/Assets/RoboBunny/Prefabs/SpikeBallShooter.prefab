@@ -12,6 +12,7 @@ GameObject:
   - component: {fileID: 3459552813074953769}
   - component: {fileID: 7960547007487102776}
   - component: {fileID: 1298047000719593863}
+  - component: {fileID: 3394005170373723361}
   m_Layer: 6
   m_Name: SpikeBallShooter
   m_TagString: Untagged
@@ -27,7 +28,7 @@ Transform:
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 5435996987242499905}
   m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
-  m_LocalPosition: {x: 0, y: 6.5, z: 0}
+  m_LocalPosition: {x: 0, y: 7, z: 0}
   m_LocalScale: {x: 0.8, y: 1, z: 1}
   m_ConstrainProportionsScale: 0
   m_Children: []
@@ -152,3 +153,25 @@ BoxCollider2D:
   serializedVersion: 2
   m_Size: {x: 1.8797739, y: 1.884913}
   m_EdgeRadius: 0
+--- !u!114 &3394005170373723361
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 5435996987242499905}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 1c20130b4dcbb204d9edbd443e45e447, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  target: {fileID: 0}
+  rotationSpeed: 60
+  projectileSpeed: 10
+  fireCooldown: 2
+  spikeBallPrefab: {fileID: 7096826557388363041, guid: e1a3c358d80a8504d838712758a37476, type: 3}
+  collisionCancelTime: 1
+  anim: {fileID: 7960547007487102776}
+  shootOffset: 1
+  spikeBallExistDuration: 5
+  spikeBallFadeDuration: 1
