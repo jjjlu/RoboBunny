@@ -351,6 +351,7 @@ MonoBehaviour:
   hitKnockbackPower: {x: 5, y: 5}
   hitDuration: 0.75
   hitCooldown: 0.5
+  frictionAmount: 0.35
   deathDuration: 5
   maxHealth: 3
   anim: {fileID: 549820571}
