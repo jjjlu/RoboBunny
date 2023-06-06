@@ -14,6 +14,7 @@ public class SpikeBallShooterController : MonoBehaviour
     [SerializeField] float shootOffset;
     [SerializeField] float spikeBallExistDuration;
     [SerializeField] float spikeBallFadeDuration;
+    [SerializeField] float activeDistance;
     private float timeTillFire;
     private UnityEngine.Collider2D shooterCollider;
 
@@ -29,13 +30,16 @@ public class SpikeBallShooterController : MonoBehaviour
     {
         timeTillFire -= Time.deltaTime; 
 
-        RotateTowardsTarget();
-
-        if (timeTillFire < 0)
+        if (Vector2.Distance(transform.position, target.position) < activeDistance)
         {
-            fireSpikeBall();
-            anim.SetTrigger("Fire");
-            timeTillFire = fireCooldown;
+            RotateTowardsTarget();
+
+            if (timeTillFire < 0)
+            {
+                fireSpikeBall();
+                anim.SetTrigger("Fire");
+                timeTillFire = fireCooldown;
+            }
         }
     }
 
