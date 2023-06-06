@@ -812,6 +812,35 @@ Transform:
   m_Father: {fileID: 1917861543}
   m_RootOrder: -1
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
+--- !u!1 &740950312 stripped
+GameObject:
+  m_CorrespondingSourceObject: {fileID: 5435996987242499905, guid: 2f5e0528a39fb4642a7918294e1260bc, type: 3}
+  m_PrefabInstance: {fileID: 4123354190498315070}
+  m_PrefabAsset: {fileID: 0}
+--- !u!114 &740950317
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 740950312}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 1c20130b4dcbb204d9edbd443e45e447, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  target: {fileID: 549820569}
+  rotationSpeed: 60
+  projectileSpeed: 10
+  fireCooldown: 2
+  spikeBallPrefab: {fileID: 7096826557388363041, guid: e1a3c358d80a8504d838712758a37476, type: 3}
+  collider: {fileID: 740950318}
+  collisionCancelTime: 1
+--- !u!61 &740950318 stripped
+BoxCollider2D:
+  m_CorrespondingSourceObject: {fileID: 1298047000719593863, guid: 2f5e0528a39fb4642a7918294e1260bc, type: 3}
+  m_PrefabInstance: {fileID: 4123354190498315070}
+  m_PrefabAsset: {fileID: 0}
 --- !u!1 &916972501
 GameObject:
   m_ObjectHideFlags: 0
@@ -4871,46 +4900,6 @@ Transform:
   m_Father: {fileID: 0}
   m_RootOrder: 3
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
---- !u!1 &2049082545 stripped
-GameObject:
-  m_CorrespondingSourceObject: {fileID: 7096826557388363041, guid: e1a3c358d80a8504d838712758a37476, type: 3}
-  m_PrefabInstance: {fileID: 7559567555544307218}
-  m_PrefabAsset: {fileID: 0}
---- !u!58 &2049082550
-CircleCollider2D:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 2049082545}
-  m_Enabled: 1
-  m_Density: 1
-  m_Material: {fileID: 6200000, guid: c643760286949254b9b5dfdfb491f14d, type: 2}
-  m_IncludeLayers:
-    serializedVersion: 2
-    m_Bits: 0
-  m_ExcludeLayers:
-    serializedVersion: 2
-    m_Bits: 0
-  m_LayerOverridePriority: 0
-  m_ForceSendLayers:
-    serializedVersion: 2
-    m_Bits: 4294967295
-  m_ForceReceiveLayers:
-    serializedVersion: 2
-    m_Bits: 4294967295
-  m_ContactCaptureLayers:
-    serializedVersion: 2
-    m_Bits: 4294967295
-  m_CallbackLayers:
-    serializedVersion: 2
-    m_Bits: 4294967295
-  m_IsTrigger: 1
-  m_UsedByEffector: 0
-  m_UsedByComposite: 0
-  m_Offset: {x: 0.021, y: -0.021}
-  serializedVersion: 2
-  m_Radius: 0.55
 --- !u!1 &2072624853
 GameObject:
   m_ObjectHideFlags: 0
@@ -9598,10 +9587,17 @@ PrefabInstance:
       propertyPath: m_Name
       value: SpikeBallShooter
       objectReference: {fileID: 0}
+    - target: {fileID: 5435996987242499905, guid: 2f5e0528a39fb4642a7918294e1260bc, type: 3}
+      propertyPath: m_TagString
+      value: Untagged
+      objectReference: {fileID: 0}
     m_RemovedComponents: []
     m_RemovedGameObjects: []
     m_AddedGameObjects: []
-    m_AddedComponents: []
+    m_AddedComponents:
+    - targetCorrespondingSourceObject: {fileID: 5435996987242499905, guid: 2f5e0528a39fb4642a7918294e1260bc, type: 3}
+      insertIndex: -1
+      addedObject: {fileID: 740950317}
   m_SourcePrefab: {fileID: 100100000, guid: 2f5e0528a39fb4642a7918294e1260bc, type: 3}
 --- !u!1001 &6322694867941973141
 PrefabInstance:
@@ -9747,11 +9743,11 @@ PrefabInstance:
       objectReference: {fileID: 0}
     - target: {fileID: 6015307530311434581, guid: e1a3c358d80a8504d838712758a37476, type: 3}
       propertyPath: m_LocalPosition.x
-      value: 1.5181346
+      value: 2.01
       objectReference: {fileID: 0}
     - target: {fileID: 6015307530311434581, guid: e1a3c358d80a8504d838712758a37476, type: 3}
       propertyPath: m_LocalPosition.y
-      value: 4.5066757
+      value: 8.51
       objectReference: {fileID: 0}
     - target: {fileID: 6015307530311434581, guid: e1a3c358d80a8504d838712758a37476, type: 3}
       propertyPath: m_LocalPosition.z
@@ -9787,17 +9783,10 @@ PrefabInstance:
       objectReference: {fileID: 0}
     - target: {fileID: 7096826557388363041, guid: e1a3c358d80a8504d838712758a37476, type: 3}
       propertyPath: m_Name
-      value: SpikedBall
-      objectReference: {fileID: 0}
-    - target: {fileID: 7096826557388363041, guid: e1a3c358d80a8504d838712758a37476, type: 3}
-      propertyPath: m_TagString
-      value: Trap
+      value: SpikeBall
       objectReference: {fileID: 0}
     m_RemovedComponents: []
     m_RemovedGameObjects: []
     m_AddedGameObjects: []
-    m_AddedComponents:
-    - targetCorrespondingSourceObject: {fileID: 7096826557388363041, guid: e1a3c358d80a8504d838712758a37476, type: 3}
-      insertIndex: -1
-      addedObject: {fileID: 2049082550}
+    m_AddedComponents: []
   m_SourcePrefab: {fileID: 100100000, guid: e1a3c358d80a8504d838712758a37476, type: 3}
