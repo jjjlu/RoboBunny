@@ -213,7 +213,7 @@ MonoBehaviour:
     m_Bits: 64
   wallCheckPoint: {fileID: 1726894897454699019}
   wallCheckSize: {x: 0.05, y: 1}
-  wallJumpingPower: {x: 4, y: 12}
+  wallJumpingPower: {x: 8, y: 16}
   wallJumpingDirection: -1
   tr: {fileID: 5136713994163745923}
   dashingPower: 40
