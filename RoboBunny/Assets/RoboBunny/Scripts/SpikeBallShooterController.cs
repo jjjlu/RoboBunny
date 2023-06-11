@@ -20,7 +20,11 @@ public class SpikeBallShooterController : MonoBehaviour
 
     // Start is called before the first frame update
     void Start()
-    { 
+    {
+        if (target == null)
+        {
+            target = GameObject.FindWithTag("Player").transform;
+        }
         timeTillFire = fireCooldown;
         shooterCollider = GetComponent<Collider2D>();
     }
