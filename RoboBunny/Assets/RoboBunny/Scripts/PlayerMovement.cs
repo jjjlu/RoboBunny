@@ -55,7 +55,7 @@ public class PlayerController : MonoBehaviour
     [SerializeField] Vector2 wallJumpingPower = new Vector2(8f, 16f);
     [SerializeField] float wallJumpingDirection = -1;
     private bool isWallJumping;
-    private float wallJumpingDuration = 0.4f;
+    [SerializeField] float wallJumpingDuration = 0.3f;
 
     [Header("For Dashing")]
     [SerializeField] TrailRenderer tr;
@@ -102,11 +102,15 @@ public class PlayerController : MonoBehaviour
     {
         AnimationControl();
         GatherInput();
-        if (isDashing || isHit || isWallJumping)
+        if (isDashing || isHit)
         {
             return;
         }
         CheckWorld();
+        if (isWallJumping)
+        {
+            return;
+        }
         Movement();
     }
 
@@ -135,6 +139,10 @@ public class PlayerController : MonoBehaviour
         {
             extraJumps = extraJumpsValue;
             canDash = true;
+            
+            
+            StopCoroutine(WallJumpRoutine());
+            isWallJumping = false;
             
             isWallSliding = true;
             // Debug.Log("Wall sliding");
