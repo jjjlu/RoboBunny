@@ -87,6 +87,7 @@ public class PlayerController : MonoBehaviour
 
     [Header("Other")]
     [SerializeField] Animator anim;
+    private CameraController cameraController; 
     private Rigidbody2D rb;
     #endregion
     
@@ -94,6 +95,7 @@ public class PlayerController : MonoBehaviour
     private void Start()
     {
         rb = GetComponent<Rigidbody2D>();
+        cameraController = Camera.main.GetComponent<CameraController>();
         currentHealth = maxHealth;
     }
 
@@ -291,6 +293,7 @@ public class PlayerController : MonoBehaviour
     void PogoJump()
     {
         tr.emitting = true;
+        cameraController.FreezeScreen();
         rb.velocity = new Vector2(rb.velocity.x, pogoForce);
         extraJumps = extraJumpsValue;
         canDash = true;
@@ -320,6 +323,8 @@ public class PlayerController : MonoBehaviour
             return;
         }
         
+        cameraController.FreezeScreen();
+        cameraController.ShakeScreen();
         currentHealth--;
         if (currentHealth <= 0)
         {

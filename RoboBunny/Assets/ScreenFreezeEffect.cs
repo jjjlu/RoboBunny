@@ -1,11 +1,7 @@
-using System.Collections;
-using System.Collections.Generic;
 using UnityEngine;
-public class CameraController : MonoBehaviour
+
+public class ScreenFreezeEffect : MonoBehaviour
 {
-    [SerializeField] private Transform player;
-    [SerializeField] private float cameraYMin;
-    
     public float freezeDuration = 0.5f;
     public float shakeDuration = 0.1f;
     public float shakeMagnitude = 0.1f;
@@ -42,11 +38,6 @@ public class CameraController : MonoBehaviour
                 isShaking = false;
             }
         }
-
-        if (!isShaking && !isFrozen)
-        {
-            transform.position = new Vector3(player.position.x, Mathf.Max(player.position.y, cameraYMin), transform.position.z);
-        }
     }
 
     public void FreezeScreen()
@@ -69,7 +60,5 @@ public class CameraController : MonoBehaviour
         }
     }
 }
-
-
 
 
