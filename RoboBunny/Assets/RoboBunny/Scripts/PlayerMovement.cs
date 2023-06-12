@@ -100,10 +100,14 @@ public class PlayerController : MonoBehaviour
 
     private void Update()
     {
+        AnimationControl();
         GatherInput();
+        if (isDashing || isHit || isWallJumping)
+        {
+            return;
+        }
         CheckWorld();
         Movement();
-        AnimationControl();
     }
 
     void GatherInput()
@@ -124,11 +128,16 @@ public class PlayerController : MonoBehaviour
             lastGroundedTime = jumpCoyoteTime;
             extraJumps = extraJumpsValue;
             canDash = true;
+            
             isWallSliding = false;
         }
         else if (isTouchingWall)
         {
+            extraJumps = extraJumpsValue;
+            canDash = true;
+            
             isWallSliding = true;
+            // Debug.Log("Wall sliding");
             if (rb.velocity.y < 0f)
             {
                 rb.velocity = new Vector2(rb.velocity.x, Mathf.Clamp(rb.velocity.y, -wallSlideSpeed, float.MaxValue));
@@ -136,6 +145,7 @@ public class PlayerController : MonoBehaviour
         }
         else // in the air
         {
+            // Debug.Log("in the air");
             isWallSliding = false;
             lastGroundedTime -= Time.deltaTime;
             HandleAirMovement();
@@ -144,14 +154,23 @@ public class PlayerController : MonoBehaviour
 
     void Movement()
     {
-        if (isDashing || isHit)
-        {
-            return;
-        }
-
         // What actually moves the player
         rb.velocity = new Vector2(XDirectionalInput * moveSpeed, rb.velocity.y);
         
+        // Update direction player is facing
+        if (XDirectionalInput < 0 && facingDirection == 1)
+        {
+            Debug.Log("1 Flipped");
+            Flip();
+        }
+        else if (XDirectionalInput > 0 && facingDirection == -1)
+        {
+            Debug.Log("-1 Flipped");
+            Flip();
+        }
+        
+        // Update animation if player is moving
+        isMoving = XDirectionalInput != 0;
         // Dashing
         if (dashInput && canDash && finishDashCooldown)
         {
@@ -169,22 +188,11 @@ public class PlayerController : MonoBehaviour
             lastJumpTime -= Time.deltaTime;
         }
         
-        // Update direction player is facing
-        if (XDirectionalInput < 0 && facingDirection == 1)
-        {
-            Flip();
-        }
-        else if (XDirectionalInput > 0 && facingDirection == -1)
-        {
-            Flip();
-        }
-        
-        // Update animation if player is moving
-        isMoving = XDirectionalInput != 0;
     }
 
     void Flip()
     {
+        Debug.Log("flipping");
         facingDirection *= -1;
         transform.Rotate(0, 180, 0);
         if (grounded)
@@ -196,12 +204,9 @@ public class PlayerController : MonoBehaviour
     void TryJump()
     {
         // Perform wall jump
-        if (isTouchingWall)
+        if (isWallSliding)
         {
-            Debug.Log("Wall jump");
-            rb.velocity = new Vector2(wallJumpingDirection * wallJumpingPower.x, wallJumpingPower.y);
-            Flip();
-            anim.SetTrigger("Jump");
+            StartCoroutine(WallJumpRoutine());
         }
         
         // Perform regular jump
@@ -222,6 +227,19 @@ public class PlayerController : MonoBehaviour
 
             anim.SetTrigger("DoubleJump");
         }
+    }
+
+    private IEnumerator WallJumpRoutine()
+    {
+        Debug.Log("Start wall jump");
+        rb.velocity = new Vector2(facingDirection * -1 * wallJumpingPower.x, wallJumpingPower.y);
+        isWallSliding = false;
+        anim.SetTrigger("Jump");
+        isWallJumping = true;
+        Flip();
+        yield return new WaitForSeconds(wallJumpingDuration);
+        isWallJumping = false;
+        Debug.Log("End wall jump");
     }
 
     void HandleAirMovement()
@@ -294,7 +312,6 @@ public class PlayerController : MonoBehaviour
         float originalGravity = rb.gravityScale;
         rb.gravityScale = 0f;
         rb.velocity = new Vector2(facingDirection * dashingPower, 0f);
-        Debug.Log(rb.velocity);
         tr.emitting = true;
         yield return new WaitForSeconds(dashingTime);
         tr.emitting = false;
