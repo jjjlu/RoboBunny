@@ -11,6 +11,8 @@ public class PlayerController : MonoBehaviour
 {
     [Header("For Movement")]
     [SerializeField] float moveSpeed = 10f;
+
+    [SerializeField] private ParticleSystem dust;
     private float XDirectionalInput;
     private bool facingRight = true;
     private bool isMoving;
@@ -33,6 +35,12 @@ public class PlayerController : MonoBehaviour
     private int extraJumps;
     private float lastGroundedTime;
     private float lastJumpTime;
+
+    [Header("For PogoJumping")]
+    [SerializeField] float pogoForce = 18f;
+    [SerializeField] private LayerMask pogoAble;
+    private bool pogoInput;
+    
 
     [Header("For WallSliding")]
     [SerializeField] float wallSlideSpeed;
@@ -110,6 +118,7 @@ public class PlayerController : MonoBehaviour
         jumpInput = Input.GetButtonDown("Jump");
         jumpInputUp = Input.GetButtonUp("Jump");
         dashInput = Input.GetButtonDown("Fire3");
+        pogoInput = Input.GetButtonDown("Fire1");
     }
     void CheckWorld()
     {
@@ -160,6 +169,7 @@ public class PlayerController : MonoBehaviour
         dashDirection *= -1;
         facingRight = !facingRight;
         transform.Rotate(0, 180, 0);
+        dust.Play();
     }
 
     void Jump()
@@ -194,6 +204,7 @@ public class PlayerController : MonoBehaviour
             lastJumpTime = 0;
 
             anim.SetTrigger("Jump");
+            dust.Play();
         }
         else if (jumpInput && extraJumps > 0 && !grounded)
         {
@@ -221,6 +232,22 @@ public class PlayerController : MonoBehaviour
 
         rb.velocity = new Vector2(rb.velocity.x, Mathf.Max(rb.velocity.y, maxFallVelocity)); 
     }
+
+    // void PogoJump()
+    // {
+    //     if (isDashing || isWallSliding || isHit || grounded)
+    //     {
+    //         return;
+    //     }
+    //
+    //     if (pogoInput)
+    //     {
+    //         if (Physics2D.OverlapBox(groundCheckPoint.position, pogoCheckSize, 0, pogoAble))
+    //         {
+    //             
+    //         }
+    //     }
+    // }
 
     void WallSlide()
     {
@@ -250,23 +277,24 @@ public class PlayerController : MonoBehaviour
             return;
         }
 
-        if (isWallSliding)
-        {
-            isWallJumping = false;
-            CancelInvoke(nameof(StopWallJumping));
-        }
+        // if (isWallSliding)
+        // {
+        //     isWallJumping = false;
+        //     CancelInvoke(nameof(StopWallJumping));
+        // }
 
         if (jumpInput && isWallSliding)
         {
             isWallJumping = true;
             isWallSliding = false;
             rb.velocity = new Vector2(wallJumpingDirection * wallJumpingPower.x, wallJumpingPower.y);
+            isWallJumping = false;
 
             anim.SetTrigger("Jump");
 
             Flip();
-
-            Invoke(nameof(StopWallJumping), wallJumpingDuration);
+            //
+            // Invoke(nameof(StopWallJumping), wallJumpingDuration);
         }
     }
 
