@@ -118,7 +118,7 @@ public class PlayerController : MonoBehaviour
     {
         grounded = Physics2D.OverlapBox(groundCheckPoint.position, groundCheckSize, 0, groundLayer);
         isTouchingWall = Physics2D.OverlapBox(wallCheckPoint.position, wallCheckSize, 0, wallLayer);
-
+        
         if (grounded)
         {
             lastGroundedTime = jumpCoyoteTime;
@@ -148,6 +148,15 @@ public class PlayerController : MonoBehaviour
         {
             return;
         }
+
+        // What actually moves the player
+        rb.velocity = new Vector2(XDirectionalInput * moveSpeed, rb.velocity.y);
+        
+        // Dashing
+        if (dashInput && canDash && finishDashCooldown)
+        {
+            StartCoroutine(DashRoutine());
+        }
         
         // Jumping
         if (jumpInput)
@@ -159,16 +168,6 @@ public class PlayerController : MonoBehaviour
         {
             lastJumpTime -= Time.deltaTime;
         }
-        
-        // Dashing
-        if (dashInput && canDash && finishDashCooldown)
-        {
-            StartCoroutine(DashRoutine());
-        }
-        
-        // What actually moves the player
-        rb.velocity = new Vector2(XDirectionalInput * moveSpeed, rb.velocity.y);
-
         
         // Update direction player is facing
         if (XDirectionalInput < 0 && facingDirection == 1)
@@ -199,6 +198,7 @@ public class PlayerController : MonoBehaviour
         // Perform wall jump
         if (isTouchingWall)
         {
+            Debug.Log("Wall jump");
             rb.velocity = new Vector2(wallJumpingDirection * wallJumpingPower.x, wallJumpingPower.y);
             Flip();
             anim.SetTrigger("Jump");
@@ -293,7 +293,8 @@ public class PlayerController : MonoBehaviour
         isDashing = true;
         float originalGravity = rb.gravityScale;
         rb.gravityScale = 0f;
-        rb.velocity = new Vector2(dashDirection * dashingPower, 0f);
+        rb.velocity = new Vector2(facingDirection * dashingPower, 0f);
+        Debug.Log(rb.velocity);
         tr.emitting = true;
         yield return new WaitForSeconds(dashingTime);
         tr.emitting = false;
