@@ -32,15 +32,15 @@ Remember, success in RoboFroggy lies in mastering these movement mechanics. Stra
 
 ### Ian - Level Design
 
-*Tutorial Level (Scene0)* - 
+*Tutorial Level (Scene0)* - I created the tutorial level which teaches the user the different movement mechanics of the player. The tutorial level is easier than other levels and has text in the background with instructions on how to use each movement mechanic, from moving left and right, jumping, dashing, wall jumping, and double jumping. The tutorial also introduces all the traps in the game to familiarize the user. Something special about the tutorial level is that it places traps in a way that requires the user to use all movement mechanics before advancing. For example, the user must learn how to double jump to cross a tall spike barrier. 
 
-*Level 1 (Scene1)* - 
+*Level 1 (Scene1)* - Level 1 is the start of a series of pretty challenging levels that test the user's skill and dexterity. Level 1 has a very tall desing where a player must ascend a series of platforms in order to reach the flag at the end of the level. It first starts out very simple as the player needs to jump through a few platforms and avoid some spikes, a spike ball shooter, and a moving saw. The level becomes more complicated as the player must utilize walling sliding and wall jumping in order to ascend a narrow passageway filled with spikes and moving saws. Finally, the most challenging part of the level includes many small platforms, spikes, and spike ball shooters scattered through out an area. The player must use precision to keep ascending the small platforms while avoiding many spike ball projectiles.
 
-*Level 2 (Scene2)* - 
+*Level 2 (Scene2)* - Level 2's focus is more on utilizing moving platforms and using precise movements to avoid different spikes and saws. In this level, the player must move laterally to the right to reach a flag at the end of the level. However, there are very few static platforms in this level and the player must primarily use moving platforms in order to travel. These moving platforms are more difficult to land on and if a player messes up their landing, they risk falling off the level and dying.
 
-*Level 3 (Scene3)* - 
+*Level 3 (Scene3)* - Unlike the last three levels, Level 3 is a closed environment with very narrow spaces that the player must traverse. I designed this level to be like a maze where the player can choose different paths to make it to the flag at the end. The narrow path design forces the player to come into close contact with different traps and makes this level the hardest. The narrow path also highlights the challenge of evading spike ball shooters and their spike balls. In this level I put many spike ball shooters whose spike balls will keep rolling throughout the pathways of this level, increasing the difficulty. 
 
-*Victory Level (Scene4)* - 
+*Victory Level (Scene4)* - This level serves as a congratulations to the user for finishing the game. I added a flag to this level to give the user an option to play the game all over again if they wanted to. This level has no traps and is meant to feel rewarding and lift any stress the user felt while playing the game.
 
 # Main Roles #
 
@@ -116,13 +116,15 @@ You should replay any **bold text** with your relevant information. Liberally us
 
 *Sticky Platform Logic* - I referenced [this video here](https://www.youtube.com/watch?v=UlEE6wjWuCY&list=PLrnPJCHvNZuCVTz6lvhR81nnaf1a-b67U&index=9) to implement the logic that allows players to stick to a platform while it moves. The way it works is that I add a trigger collider at the top of the platform that will trigger whenever a player lands on it. Once triggered, the player's transform parent will be set to that of the platform so that the player will move along with the plaform. Once the player leaves the platform, I will reset its transform parent, "unsticking" it from the platform. 
 
-*Waypoint Follower Logic* - I referenced [this video here](https://www.youtube.com/watch?v=UlEE6wjWuCY&list=PLrnPJCHvNZuCVTz6lvhR81nnaf1a-b67U&index=9) to implement the logic that allows obstacles to move and follow a set of waypoints.
+*Waypoint Follower Logic* - I referenced [this video here](https://www.youtube.com/watch?v=UlEE6wjWuCY&list=PLrnPJCHvNZuCVTz6lvhR81nnaf1a-b67U&index=9) to implement the logic that allows obstacles to move and follow a set of waypoints. To implement this I created a script that takes in an array of waypoints, which are just empty game objects with a desired transform. Then the script will control the moving saw or platform to move towards each waypoint one by one. Once the saw or platform has covered each waypoint, it goes back to the first waypoint and restarts.
 
-*Trap Collisions/Triggers and Player Hit Detection* - 
+*Trap Collisions/Triggers and Player Hit Detection* - To implement hit detection, I added an OnTrigger to the PlayerMovement script that will detect for any collisions with game objects that have the tag "Trap".  All the traps in this game, including saws, spikes, and spike balls have the tag "Trap" and a trigger collider. If a player gets hit, their health is decremented.
 
-*Camera Controller Logic* - I referenced [this video here](https://www.youtube.com/watch?v=Uv5tfMSKlnU&list=PLrnPJCHvNZuCVTz6lvhR81nnaf1a-b67U&index=3) to create a position locked camera that will lock its position to the player. The way it works is that. I also added a feature so that the camera won't go below a set minimum value. This is valuable because
+*Death Mechanic* - If a player's health decremented all the way to zero, I would trigger a death function and animation that would reset the scene. However, I didn't want this transition to be immediate so I started a coroutine that would play the death animation and disable the PlayerController script for a specified duration before resetting the scene.
 
-*Out of Bounds Death/Reset* - I added a third tilemap behind "Background" and "Terrain" 
+*Camera Controller Logic* - I referenced [this video here](https://www.youtube.com/watch?v=Uv5tfMSKlnU&list=PLrnPJCHvNZuCVTz6lvhR81nnaf1a-b67U&index=3) to create a position locked camera that will lock its position to the player. The way it works is that it sets the transform of the camera to match that of the player. I also added a feature so that the camera won't go below a set minimum value. This is valuable because if a player falls off the edge of the level, we don't want the camera to continuously follow the player, but instead stop at some y-value to indicate to the user that the player has fallen off the screen.
+
+*Out of Bounds Death/Reset* - When the player goes out of bounds and falls off the level, I don't want them to keep falling, but instead for them to die and reset the scene/level. I added a third tilemap collider behind "Background" and "Terrain" called "Death". This tilemap collider is very simple and is present in the Tutorial Level, Level 1, and Level 2. Essentially, it is a tilemap that covers the bottom of the level so that when the player collides with it, we can restart the scene.
 
 **Document what game states and game data you managed and what design patterns you used to complete your task.**
 
@@ -164,16 +166,12 @@ You should replay any **bold text** with your relevant information. Liberally us
 
 ### Ian - Game Feel
 
-*Coyote Time* - https://www.youtube.com/watch?v=RFix_Kg2Di0
+*Coyote Time* - I implemented the feature Coyote Time using [this video as reference](https://www.youtube.com/watch?v=RFix_Kg2Di0). Coyote Time gives the player a brief duration to jump after it has left a platform and is not grounded. This is valuable for game feel because if a player is moving quickly, jumping from platform to platform, Coyote Time gives more leeway to the player on timing jumps and results in a less frustrating experience. To implement Coyote Time, I have a timer counter that resets when the player is grounded and decrements when the player is in the air. Using this counter, I allow the player to jump so long as the timer hasn't run out of time. 
 
-*Jump Buffer* - https://www.youtube.com/watch?v=RFix_Kg2Di0
+*Jump Buffer* - I implemented the feature Jump Buffer using [this video as reference](https://www.youtube.com/watch?v=RFix_Kg2Di0). Jump Buffer will buffer the user's jump input for a brief duration and trigger a jump even if the user didn't immediately press the jump button when the player landed. Similar to Coyote Time this gives the player more leeway and makes jumping consecutively easier and smoother. To implement the Jump Buffer, I have a decrementing timer counter that resets when the jump input is pressed. With this, I can trigger a jump if this timer is greater than 0 and the player is grounded (Coyote Timer is greater than zero).
 
-*Fall Gravity* - https://www.youtube.com/watch?v=2S3g8CgBG1g
+*Fall Gravity* - I implemented the feature Fall Gravity using [this video as reference](https://www.youtube.com/watch?v=2S3g8CgBG1g). Fall Gravity will increase the player's gravity when the player is falling. This is helpful for the player because it makes landing more fluid and precise as players can first jump to a desired height and then quickly fall downwards to a target platform. Implementing this involved increasing the player's rigidbody gravity scale whenever it is falling (its y-velocity is negative).
 
-*Jump Cut* - 
+*Jump Cut* - I implemented the Jump Cut feature using [this code as reference](https://gist.github.com/bendux/b6d7745ad66b3d48ef197a9d261dc8f6). The Jump Cut will slow down a player's upwards velocity when they are jumping if the user lets go of the jump button. This is extremely important for game feel because it gives player's control over their jump height. If they want to jump high, they keep holding the space bar, whereas if they want a short jump, they quickly let go of the space bar. To implement the jump cut, I check whether the player is not holding down the jump input and the player is moving upwards. If they are then I cut the player's velocity by some factor each update.
 
-*Hurt/Damaged Mechanic* -
-
-*Death Mechanic* -
-
-*Spike Balls and Spike Ball Shooter Features* -
+*Hurt/Damaged Mechanic* - When the player got hurt by any sort of trap, I wanted the user to really feel the effects of this event. In addition to playing a "hurt" animation, I added a feature so that the player would be knocked back by whatever it was hit with. I also didn't want the user to be able to move the player for a brief duration after being hit to emphasize the hit knockback. I also added a hit cooldown where the player won't take damage for a brief period after being hit to help out the player in case they were in an area with many traps around them. When the player is hit, I would start a coroutine that would set a knockback velocity in the direction opposite to the trap. In the coroutine, I had a hit duration for which the user can not control the player and a hit cooldown for where the player cannot take damage for a brief duration. 
