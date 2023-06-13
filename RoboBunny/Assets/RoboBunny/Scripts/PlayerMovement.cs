@@ -75,6 +75,9 @@ public class PlayerController : MonoBehaviour
 
     [Header("For Health")]
     [SerializeField] int maxHealth = 3;
+    [SerializeField] GameObject firstHeart;
+    [SerializeField] GameObject secondHeart;
+    [SerializeField] GameObject thirdHeart;
     private int currentHealth;
 
     [Header("Other")]
@@ -87,6 +90,10 @@ public class PlayerController : MonoBehaviour
     {
         rb = GetComponent<Rigidbody2D>();
         currentHealth = maxHealth;
+
+        firstHeart.SetActive(true);
+        secondHeart.SetActive(true);
+        thirdHeart.SetActive(true);
     }
 
     private void Update()
@@ -328,12 +335,21 @@ public class PlayerController : MonoBehaviour
 
             if (currentHealth <= 0)
             {
+                firstHeart.SetActive(false);
                 enabled = false;
                 isDead = true;
                 StartCoroutine(DeathRoutine());
             }
             else
             {
+                if (currentHealth == 2)
+                {
+                    thirdHeart.SetActive(false);
+                }
+                else if (currentHealth == 1)
+                {
+                    secondHeart.SetActive(false);
+                }
                 StartCoroutine(HitRoutine());
             }
         }
@@ -424,6 +440,11 @@ public class PlayerController : MonoBehaviour
         Gizmos.color = Color.green;
         Gizmos.DrawCube(wallCheckPoint.position, wallCheckSize);
 
+    }
+
+    public int GetCurrentHealth()
+    {
+        return currentHealth;
     }
 
 }
