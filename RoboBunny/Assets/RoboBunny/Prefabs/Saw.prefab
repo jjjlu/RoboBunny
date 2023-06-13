@@ -14,7 +14,7 @@ GameObject:
   - component: {fileID: 3645853128755759356}
   - component: {fileID: 6697206225377998754}
   - component: {fileID: 4743017935866121644}
-  m_Layer: 6
+  m_Layer: 7
   m_Name: Saw
   m_TagString: Trap
   m_Icon: {fileID: 0}

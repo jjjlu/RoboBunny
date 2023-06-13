@@ -9,11 +9,13 @@ using UnityEngine.SceneManagement;
 
 public class PlayerController : MonoBehaviour
 {
+    #region Parameters
     [Header("For Movement")]
     [SerializeField] float moveSpeed = 10f;
+    [SerializeField] private ParticleSystem dust;
     private float XDirectionalInput;
-    private bool facingRight = true;
     private bool isMoving;
+    private int facingDirection = 1; // 1 is right, -1 is left
 
     [Header("For Jumping")]
     [SerializeField] float jumpForce = 16f;
@@ -34,6 +36,15 @@ public class PlayerController : MonoBehaviour
     private float lastGroundedTime;
     private float lastJumpTime;
 
+    [Header("For PogoJumping")]
+    [SerializeField] float pogoForce = 18f;
+    [SerializeField] private Vector2 pogoCheckSize;
+    [SerializeField] private LayerMask pogoAble;
+    [SerializeField] private float pogoTime = 0.2f;
+    private bool pogoActive; 
+    private bool pogoInput;
+    
+
     [Header("For WallSliding")]
     [SerializeField] float wallSlideSpeed;
     [SerializeField] LayerMask wallLayer;
@@ -44,19 +55,17 @@ public class PlayerController : MonoBehaviour
 
     [Header("For WallJumping")]
     [SerializeField] Vector2 wallJumpingPower = new Vector2(8f, 16f);
-    [SerializeField] float wallJumpingDirection = -1;
     private bool isWallJumping;
-    private float wallJumpingDuration = 0.4f;
+    [SerializeField] float wallJumpingDuration = 0.3f;
 
     [Header("For Dashing")]
     [SerializeField] TrailRenderer tr;
     [SerializeField] float dashingPower = 24f;
     [SerializeField] float dashingTime = 0.2f;
     [SerializeField] float dashingCooldown = 1f;
-    [SerializeField] float dashDirection = 1;
     private bool canDash = true;
     private bool finishDashCooldown = true;
-    private bool isDashing = false;
+    private bool isDashing;
     private bool dashInput;
 
     [Header("For Hit")]
@@ -65,8 +74,7 @@ public class PlayerController : MonoBehaviour
     [SerializeField] float hitCooldown = 0.5f;
     [SerializeField] float frictionAmount = 0.35f;
     private bool finishHitCooldown = true;
-    private bool isHit = false;
-    private bool isColliding = false;
+    private bool isHit;
     private float hitDirection;
 
     [Header("For Death")]
@@ -75,141 +83,186 @@ public class PlayerController : MonoBehaviour
 
     [Header("For Health")]
     [SerializeField] int maxHealth = 3;
-    [SerializeField] GameObject firstHeart;
-    [SerializeField] GameObject secondHeart;
-    [SerializeField] GameObject thirdHeart;
     private int currentHealth;
 
     [Header("Other")]
     [SerializeField] Animator anim;
+    private CameraController cameraController; 
     private Rigidbody2D rb;
-
-
-
+    #endregion
+    
+    
     private void Start()
     {
         rb = GetComponent<Rigidbody2D>();
+        cameraController = Camera.main.GetComponent<CameraController>();
         currentHealth = maxHealth;
-
-        firstHeart.SetActive(true);
-        secondHeart.SetActive(true);
-        thirdHeart.SetActive(true);
     }
 
     private void Update()
     {
-        Inputs();
-        CheckWorld();
-        
-        Movement();
-        Jump();
-        WallSlide();
-        WallJump();
-        Dash();
-        Hit();
-
         AnimationControl();
+        GatherInput();
+        if (isDashing || isHit)
+        {
+            return;
+        }
+        CheckWorld();
+        if (isWallJumping)
+        {
+            return;
+        }
+        Movement();
     }
 
-    void Inputs()
+    void GatherInput()
     {
         XDirectionalInput = Input.GetAxis("Horizontal");
         jumpInput = Input.GetButtonDown("Jump");
         jumpInputUp = Input.GetButtonUp("Jump");
         dashInput = Input.GetButtonDown("Fire3");
+        pogoInput = Input.GetButtonDown("Fire1");
     }
     void CheckWorld()
     {
         grounded = Physics2D.OverlapBox(groundCheckPoint.position, groundCheckSize, 0, groundLayer);
         isTouchingWall = Physics2D.OverlapBox(wallCheckPoint.position, wallCheckSize, 0, wallLayer);
-
-        if (grounded || isTouchingWall)
+        
+        if (grounded)
+        {
+            lastGroundedTime = jumpCoyoteTime;
+            extraJumps = extraJumpsValue;
+            canDash = true;
+            
+            isWallSliding = false;
+        }
+        else if (isTouchingWall)
         {
             extraJumps = extraJumpsValue;
             canDash = true;
+            
+            
+            StopCoroutine(WallJumpRoutine());
+            isWallJumping = false;
+            
+            isWallSliding = true;
+            // Debug.Log("Wall sliding");
+            if (rb.velocity.y < 0f)
+            {
+                rb.velocity = new Vector2(rb.velocity.x, Mathf.Clamp(rb.velocity.y, -wallSlideSpeed, float.MaxValue));
+            }
+        }
+        else // in the air
+        {
+            // Debug.Log("in the air");
+            isWallSliding = false;
+            lastGroundedTime -= Time.deltaTime;
+            HandleAirMovement();
         }
     }
 
     void Movement()
     {
-        if (isWallJumping || isDashing || isHit)
-        {
-            return;
-        }
-
-        //for Animation
-        if (XDirectionalInput != 0)
-        {
-            isMoving = true;
-        }
-        else
-        {
-            isMoving = false;
-        }
-
-        //for movement
+        // What actually moves the player
         rb.velocity = new Vector2(XDirectionalInput * moveSpeed, rb.velocity.y);
-
-        //for fliping
-        if (XDirectionalInput < 0 && facingRight && !isWallSliding)
+        
+        // Update direction player is facing
+        if (XDirectionalInput < 0 && facingDirection == 1)
         {
             Flip();
         }
-        else if (XDirectionalInput > 0 && !facingRight && !isWallSliding)
+        else if (XDirectionalInput > 0 && facingDirection == -1)
         {
             Flip();
         }
-    }
-
-    void Flip()
-    {
-        wallJumpingDirection *= -1;
-        dashDirection *= -1;
-        facingRight = !facingRight;
-        transform.Rotate(0, 180, 0);
-    }
-
-    void Jump()
-    {
-        if (isDashing || isWallSliding || isHit)
+        
+        // Update animation if player is moving
+        isMoving = XDirectionalInput != 0;
+        // Dashing
+        if (dashInput && canDash && finishDashCooldown)
         {
-            return;
+            StartCoroutine(DashRoutine());
         }
-
-        if (grounded)
-        {
-            lastGroundedTime = jumpCoyoteTime;
-        }
-        else
-        {
-            lastGroundedTime -= Time.deltaTime;
-        }
-
+        
+        // Jumping
         if (jumpInput)
         {
             lastJumpTime = jumpBufferTime;
+            TryJump();
         }
         else
         {
             lastJumpTime -= Time.deltaTime;
         }
+        
+    }
 
-        if (lastJumpTime > 0 && lastGroundedTime > 0)
+    void Flip()
+    {
+        facingDirection *= -1;
+        transform.Rotate(0, 180, 0);
+        if (grounded)
+        {   
+            dust.Play();
+        }
+    }
+
+    void TryJump()
+    {
+        // Perform wall jump
+        if (isWallSliding)
+        {
+            StartCoroutine(WallJumpRoutine());
+        }
+        
+        // Perform regular jump
+        else if (lastJumpTime > 0 && lastGroundedTime > 0)
         {
             rb.velocity = new Vector2(rb.velocity.x, jumpForce);
-
+            
             lastJumpTime = 0;
 
             anim.SetTrigger("Jump");
+            dust.Play();
         }
-        else if (jumpInput && extraJumps > 0 && !grounded)
+        // Double jump
+        else if (extraJumps > 0 && !grounded)
         {
             rb.velocity = new Vector2(rb.velocity.x, jumpForce);
             extraJumps--;
 
+            anim.SetTrigger("Jump");
+            tr.emitting = true;
+        }
+    }
+
+    private IEnumerator WallJumpRoutine()
+    {
+        Debug.Log("Start wall jump");
+        rb.velocity = new Vector2(facingDirection * -1 * wallJumpingPower.x, wallJumpingPower.y);
+        isWallSliding = false;
+        anim.SetTrigger("Jump");
+        isWallJumping = true;
+        Flip();
+        yield return new WaitForSeconds(wallJumpingDuration);
+        isWallJumping = false;
+        Debug.Log("End wall jump");
+    }
+
+    void HandleAirMovement()
+    {
+        if (pogoInput)
+        {
             anim.SetTrigger("DoubleJump");
+            StartCoroutine(PogoRoutine());
         }
 
+        if (pogoActive && Physics2D.OverlapBox(groundCheckPoint.position, pogoCheckSize, 0, pogoAble))
+        {
+            pogoActive = false;
+            PogoJump();
+        }
+        
         if (jumpInputUp && rb.velocity.y > 0f)
         {
             rb.velocity = new Vector2(rb.velocity.x, rb.velocity.y * jumpCutMultiplier);
@@ -220,6 +273,7 @@ public class PlayerController : MonoBehaviour
         if (rb.velocity.y < 0f)
         {
             rb.gravityScale = gravityScale * fallGravityMultiplier;
+            tr.emitting = false;
         }
         else
         {
@@ -229,81 +283,20 @@ public class PlayerController : MonoBehaviour
         rb.velocity = new Vector2(rb.velocity.x, Mathf.Max(rb.velocity.y, maxFallVelocity)); 
     }
 
-    void WallSlide()
+    private IEnumerator PogoRoutine()
     {
-        if (isDashing || isHit)
-        {
-            return;
-        }
-
-        if (isTouchingWall && !grounded)
-        {
-            isWallSliding = true;
-        }
-        else
-        {
-            isWallSliding = false;
-        }
-
-        if (isWallSliding)
-        {
-            rb.velocity = new Vector2(rb.velocity.x, Mathf.Clamp(rb.velocity.y, -wallSlideSpeed, float.MaxValue));
-        }
-    }
-    void WallJump()
-    {
-        if (isDashing || isHit)
-        {
-            return;
-        }
-
-        if (isWallSliding)
-        {
-            isWallJumping = false;
-            CancelInvoke(nameof(StopWallJumping));
-        }
-
-        if (jumpInput && isWallSliding)
-        {
-            isWallJumping = true;
-            isWallSliding = false;
-            rb.velocity = new Vector2(wallJumpingDirection * wallJumpingPower.x, wallJumpingPower.y);
-
-            anim.SetTrigger("Jump");
-
-            Flip();
-
-            Invoke(nameof(StopWallJumping), wallJumpingDuration);
-        }
+        pogoActive = true;
+        yield return new WaitForSeconds(pogoTime);
+        pogoActive = false;
     }
 
-    private void StopWallJumping()
+    void PogoJump()
     {
-        isWallJumping = false;
-    }
-
-    void Dash()
-    {
-        if (isHit)
-        {
-            return;
-        }
-
-        if (dashInput && canDash && finishDashCooldown)
-        {
-            if (isWallSliding ||
-                (XDirectionalInput < 0 && facingRight) || 
-                (XDirectionalInput > 0 && !facingRight))
-            {
-                Flip();
-            }
-
-            isWallSliding = false;
-            isWallJumping = false;
-            CancelInvoke(nameof(StopWallJumping));
-
-            StartCoroutine(DashRoutine());
-        }
+        tr.emitting = true;
+        cameraController.FreezeScreen();
+        rb.velocity = new Vector2(rb.velocity.x, pogoForce);
+        extraJumps = extraJumpsValue;
+        canDash = true;
     }
 
     private IEnumerator DashRoutine()
@@ -313,7 +306,7 @@ public class PlayerController : MonoBehaviour
         isDashing = true;
         float originalGravity = rb.gravityScale;
         rb.gravityScale = 0f;
-        rb.velocity = new Vector2(dashDirection * dashingPower, 0f);
+        rb.velocity = new Vector2(facingDirection * dashingPower, 0f);
         tr.emitting = true;
         yield return new WaitForSeconds(dashingTime);
         tr.emitting = false;
@@ -325,36 +318,26 @@ public class PlayerController : MonoBehaviour
 
     void Hit()
     {
-        if (isColliding && finishHitCooldown && !isHit)
+        if (!finishHitCooldown)
         {
-            isWallSliding = false;
-            isWallJumping = false;
-            CancelInvoke(nameof(StopWallJumping));
-
-            currentHealth--;
-
-            if (currentHealth <= 0)
-            {
-                firstHeart.SetActive(false);
-                enabled = false;
-                isDead = true;
-                StartCoroutine(DeathRoutine());
-            }
-            else
-            {
-                if (currentHealth == 2)
-                {
-                    thirdHeart.SetActive(false);
-                }
-                else if (currentHealth == 1)
-                {
-                    secondHeart.SetActive(false);
-                }
-                StartCoroutine(HitRoutine());
-            }
+            return;
+        }
+        
+        cameraController.FreezeScreen();
+        cameraController.ShakeScreen();
+        currentHealth--;
+        if (currentHealth <= 0)
+        {
+            enabled = false;
+            isDead = true;
+            StartCoroutine(DeathRoutine());
+        }
+        else
+        {
+            StartCoroutine(HitRoutine());
         }
 
-        if (isHit && grounded)
+        if (grounded)
         {
             float amount = Mathf.Min(Mathf.Abs(rb.velocity.x), Mathf.Abs(frictionAmount));
 
@@ -367,6 +350,7 @@ public class PlayerController : MonoBehaviour
     private IEnumerator HitRoutine()
     {
         isHit = true;
+        anim.SetBool("Hit", isHit);
         finishHitCooldown = false;
         rb.velocity = new Vector2(hitDirection * hitKnockbackPower.x, hitKnockbackPower.y);
         Debug.Log(rb.velocity);
@@ -402,8 +386,8 @@ public class PlayerController : MonoBehaviour
             {
                 hitDirection = 1;
             }
-            
-            isColliding = true;
+
+            Hit();
         }
         else if (collision.gameObject.CompareTag("Death"))
         {
@@ -411,14 +395,6 @@ public class PlayerController : MonoBehaviour
             enabled = false;
             isDead = true;
             StartCoroutine(DeathRoutine());
-        }
-    }
-
-    void OnTriggerExit2D(UnityEngine.Collider2D collision)
-    {
-        if (collision.gameObject.CompareTag("Trap"))
-        {
-            isColliding = false;
         }
     }
 
@@ -439,12 +415,9 @@ public class PlayerController : MonoBehaviour
         Gizmos.DrawCube(groundCheckPoint.position, groundCheckSize);
         Gizmos.color = Color.green;
         Gizmos.DrawCube(wallCheckPoint.position, wallCheckSize);
+        Gizmos.color = Color.yellow;
+        Gizmos.DrawCube(groundCheckPoint.position, pogoCheckSize);
 
-    }
-
-    public int GetCurrentHealth()
-    {
-        return currentHealth;
     }
 
 }
