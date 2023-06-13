@@ -91,6 +91,7 @@ public class PlayerController : MonoBehaviour
         rb = GetComponent<Rigidbody2D>();
         currentHealth = maxHealth;
 
+        // For displaying UI
         firstHeart.SetActive(true);
         secondHeart.SetActive(true);
         thirdHeart.SetActive(true);
@@ -141,6 +142,7 @@ public class PlayerController : MonoBehaviour
         if (XDirectionalInput != 0)
         {
             isMoving = true;
+            FindObjectOfType<SoundEffects>().PlayRun();
         }
         else
         {
@@ -200,12 +202,16 @@ public class PlayerController : MonoBehaviour
 
             lastJumpTime = 0;
 
+            FindObjectOfType<SoundEffects>().PlayJump();
+        
             anim.SetTrigger("Jump");
         }
         else if (jumpInput && extraJumps > 0 && !grounded)
         {
             rb.velocity = new Vector2(rb.velocity.x, jumpForce);
             extraJumps--;
+
+            FindObjectOfType<SoundEffects>().PlayJump();
 
             anim.SetTrigger("DoubleJump");
         }
@@ -269,6 +275,8 @@ public class PlayerController : MonoBehaviour
             isWallSliding = false;
             rb.velocity = new Vector2(wallJumpingDirection * wallJumpingPower.x, wallJumpingPower.y);
 
+            FindObjectOfType<SoundEffects>().PlayJump();
+
             anim.SetTrigger("Jump");
 
             Flip();
@@ -302,6 +310,8 @@ public class PlayerController : MonoBehaviour
             isWallJumping = false;
             CancelInvoke(nameof(StopWallJumping));
 
+            FindObjectOfType<SoundEffects>().PlayDash();
+
             StartCoroutine(DashRoutine());
         }
     }
@@ -327,6 +337,8 @@ public class PlayerController : MonoBehaviour
     {
         if (isColliding && finishHitCooldown && !isHit)
         {
+            FindObjectOfType<SoundEffects>().PlayHit();
+
             isWallSliding = false;
             isWallJumping = false;
             CancelInvoke(nameof(StopWallJumping));
@@ -338,6 +350,7 @@ public class PlayerController : MonoBehaviour
                 firstHeart.SetActive(false);
                 enabled = false;
                 isDead = true;
+                FindObjectOfType<SoundEffects>().PlayFalling();
                 StartCoroutine(DeathRoutine());
             }
             else
@@ -440,11 +453,6 @@ public class PlayerController : MonoBehaviour
         Gizmos.color = Color.green;
         Gizmos.DrawCube(wallCheckPoint.position, wallCheckSize);
 
-    }
-
-    public int GetCurrentHealth()
-    {
-        return currentHealth;
     }
 
 }
