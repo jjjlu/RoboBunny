@@ -30,6 +30,18 @@ Remember, success in RoboFroggy lies in mastering these movement mechanics. Stra
 
 **If you did work that should be factored in to your grade that does not fit easily into the proscribed roles, add it here! Please include links to resources and descriptions of game-related material that does not fit into roles here.**
 
+### Ian - Level Design
+
+*Tutorial Level (Scene0)* - 
+
+*Level 1 (Scene1)* - 
+
+*Level 2 (Scene2)* - 
+
+*Level 3 (Scene3)* - 
+
+*Victory Level (Scene4)* - 
+
 # Main Roles #
 
 Your goal is to relate the work of your role and sub-role in terms of the content of the course. Please look at the role sections below for specific instructions for each role.
@@ -55,11 +67,35 @@ You should replay any **bold text** with your relevant information. Liberally us
 
 **Describe the basics of movement and physics in your game. Is it the standard physics model? What did you change or modify? Did you make your movement scripts that do not use the physics system?**
 
+### Ian - Movement/Physics
+
+*Physics Environment* -
+
+*Moving Left and Right* - 
+
+*Jump* - 
+
+*Double Jump* - 
+
+*Wall Slide* - 
+
+*Wall Jump* - 
+
+*Dash* -
+
 ## Animation and Visuals
 
 **List your assets including their sources and licenses.**
 
 **Describe how your work intersects with game feel, graphic design, and world-building. Include your visual style guide if one exists.**
+
+### Ian - Animation and Visuals
+
+*Level Visuals* - 
+
+*Player Visuals and Animations* - 
+
+*Trap/Obstacles Visuals and Animations* - 
 
 ## Input
 
@@ -67,7 +103,23 @@ You should replay any **bold text** with your relevant information. Liberally us
 
 **Add an entry for each platform or input style your project supports.**
 
+### Ian - Input
+
+*Player Movement Input* -
+
 ## Game Logic
+
+### Ian - Game Logic
+
+*Spike Ball Shooter Logic* -
+
+*Spike Ball Logic* -
+
+*Sticky Platform Logic* -
+
+*Waypoint Follower Logic* -
+
+*Camera Controller Logic* -
 
 **Document what game states and game data you managed and what design patterns you used to complete your task.**
 
@@ -106,3 +158,17 @@ You should replay any **bold text** with your relevant information. Liberally us
 ## Game Feel
 
 **Document what you added to and how you tweaked your game to improve its game feel.**
+
+### Ian - Game Feel
+
+*Coyote Time* -
+
+*Jump Buffer* -
+
+*Fall Gravity* -
+
+*Hurt/Damaged Mechanic* -
+
+*Death Mechanic* -
+
+*Spike Balls and Spike Ball Shooter Features* -
