@@ -4,6 +4,7 @@ using UnityEngine;
 
 // Credit for theme music: https://pixabay.com/music/video-games-music-for-arcade-style-game-146875/
 // Credit for all sound effects: https://mixkit.co/free-sound-effects
+// Credit for code tutorial: https://www.youtube.com/watch?v=JnbDxG04i7c
 
 public class SoundEffects : MonoBehaviour
 {
