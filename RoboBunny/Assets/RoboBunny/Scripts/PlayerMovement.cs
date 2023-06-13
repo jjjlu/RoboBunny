@@ -349,6 +349,7 @@ public class PlayerController : MonoBehaviour
 
     private IEnumerator HitRoutine()
     {
+        isWallSliding = false;
         isHit = true;
         anim.SetBool("Hit", isHit);
         finishHitCooldown = false;
