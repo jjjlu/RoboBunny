@@ -7,6 +7,7 @@ using UnityEngine.SceneManagement;
 
 public class LevelController : MonoBehaviour
 {
+    [SerializeField] string nextScene;
  
     private void OnTriggerEnter2D(Collider2D collision)
     {
@@ -18,6 +19,6 @@ public class LevelController : MonoBehaviour
 
     private void CompleteLevel()
     {
-        SceneManager.LoadScene(SceneManager.GetActiveScene().buildIndex + 1);
+        SceneManager.LoadScene(nextScene);
     }
 }
