@@ -238,7 +238,7 @@ public class PlayerController : MonoBehaviour
             rb.velocity = new Vector2(rb.velocity.x, jumpForce);
             extraJumps--;
 
-            anim.SetTrigger("Jump");
+            anim.SetTrigger("DoubleJump");
             tr.emitting = true;
         }
     }
@@ -370,7 +370,7 @@ public class PlayerController : MonoBehaviour
 
     void Hit()
     {
-        if (!finishHitCooldown)
+        if (!finishHitCooldown || isDead)
         {
             return;
         }
